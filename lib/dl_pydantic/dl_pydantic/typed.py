@@ -10,6 +10,7 @@ from typing import (
 
 import pydantic
 import pydantic._internal._model_construction as pydantic_model_construction
+import pydantic_core
 from typing_extensions import Self
 
 import dl_pydantic.base as base
@@ -83,6 +84,26 @@ class TypedBaseModel(base.BaseModel, metaclass=TypedMeta):
             raise ValueError("Data must be mapping for dict factory")
 
         return {key: cls.factory(value) for key, value in data.items()}
+
+    @classmethod
+    def __get_pydantic_json_schema__(
+        cls,
+        core_schema: pydantic_core.CoreSchema,
+        handler: pydantic.GetJsonSchemaHandler,
+        /,
+    ) -> pydantic.json_schema.JsonSchemaValue:
+        if not cls._classes:
+            return handler(core_schema)
+
+        one_of_schemas = []
+        for type_identifier, registered_class in sorted(cls._classes.items()):
+            registered_core_schema = registered_class.__pydantic_core_schema__
+            class_json_schema = handler(registered_core_schema).copy()
+            class_json_schema["title"] = registered_class.__name__
+            class_json_schema["properties"]["type"]["enum"] = [type_identifier]
+            one_of_schemas.append(class_json_schema)
+
+        return {"oneOf": one_of_schemas}
 
 
 if TYPE_CHECKING:

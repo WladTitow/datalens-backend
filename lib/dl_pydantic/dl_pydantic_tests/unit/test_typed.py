@@ -243,3 +243,113 @@ def test_dict_annotation() -> None:
     root = Root.model_validate({"children": {"child": {"type": "child"}}})
 
     assert isinstance(root.children["child"], Child)
+
+
+def test_model_json_schema() -> None:
+    class Base(dl_pydantic.TypedBaseModel):
+        base: str
+
+    class Child(Base):
+        text: str
+
+    class Child2(Base):
+        number: int
+
+    Base.register("text_child", Child)
+    Base.register("int_child", Child2)
+
+    class Root(dl_pydantic.BaseModel):
+        children: dl_pydantic.TypedAnnotation[Base]
+
+    schema = Root.model_json_schema()
+
+    expected_schema = {
+        "properties": {
+            "children": {"$ref": "#/$defs/Base"},
+        },
+        "required": ["children"],
+        "title": "Root",
+        "type": "object",
+        "$defs": {
+            "Base": {
+                "oneOf": [
+                    {
+                        "properties": {
+                            "base": {"title": "Base", "type": "string"},
+                            "type": {"title": "Type", "type": "string", "enum": ["int_child"]},
+                            "number": {"title": "Number", "type": "integer"},
+                        },
+                        "required": ["type", "base", "number"],
+                        "title": "Child2",
+                        "type": "object",
+                    },
+                    {
+                        "properties": {
+                            "base": {"title": "Base", "type": "string"},
+                            "type": {"title": "Type", "type": "string", "enum": ["text_child"]},
+                            "text": {"title": "Text", "type": "string"},
+                        },
+                        "required": ["type", "base", "text"],
+                        "title": "Child",
+                        "type": "object",
+                    },
+                ]
+            },
+        },
+    }
+
+    assert schema == expected_schema
+
+
+def test_model_json_schema_with_nested_models() -> None:
+    class Child(dl_pydantic.BaseModel):
+        value: int
+
+    class Base(dl_pydantic.TypedBaseModel):
+        ...
+
+    class NestedChild(Base):
+        value: str
+        child: Child
+
+    Base.register("cron", NestedChild)
+
+    class Job(dl_pydantic.BaseModel):
+        name: str
+        trigger: dl_pydantic.TypedAnnotation[Base]
+
+    schema = Job.model_json_schema()
+
+    expected_schema = {
+        "properties": {
+            "name": {"title": "Name", "type": "string"},
+            "trigger": {"$ref": "#/$defs/Base"},
+        },
+        "required": ["name", "trigger"],
+        "title": "Job",
+        "type": "object",
+        "$defs": {
+            "Child": {
+                "properties": {"value": {"title": "Value", "type": "integer"}},
+                "required": ["value"],
+                "title": "Child",
+                "type": "object",
+            },
+            "Base": {
+                "oneOf": [
+                    {
+                        "properties": {
+                            "type": {"title": "Type", "type": "string", "enum": ["cron"]},
+                            "value": {"title": "Value", "type": "string"},
+                            "child": {"$ref": "#/$defs/Child"},
+                        },
+                        "required": ["type", "value", "child"],
+                        "title": "NestedChild",
+                        "type": "object",
+                    }
+                ]
+            },
+        },
+    }
+
+    assert schema == expected_schema
