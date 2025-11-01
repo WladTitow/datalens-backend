@@ -19,32 +19,17 @@ def test_lod_aggregation_to_query_fork_mutation():
     )
     formula_obj = apply_mutations(formula_obj, mutations=mutations)
     assert formula_obj == n.formula(
-        n.fork(
-            join_type=fork_nodes.JoinType.inner,
-            result_expr=n.func.SUM(
+        n.formula(
+            n.func.SUM(
                 args=[
-                    n.fork(
-                        join_type=fork_nodes.JoinType.inner,
-                        result_expr=n.func.AVG(
+                    n.formula(
+                        n.func.AVG(
                             args=[],
                             lod=n.fixed(n.field("f1"), n.field("f2")),
                         ),
-                        joining=n.joining(
-                            conditions=[
-                                n.self_condition(expr=n.field("f1")),
-                                n.self_condition(expr=n.field("f2")),
-                            ]
-                        ),
-                        lod=n.fixed(n.field("f1"), n.field("f2")),
                     ),
                 ],
                 lod=n.fixed(n.field("f1")),
             ),
-            joining=n.joining(
-                conditions=[
-                    n.self_condition(expr=n.field("f1")),
-                ]
-            ),
-            lod=n.fixed(n.field("f1")),
         ),
     )
