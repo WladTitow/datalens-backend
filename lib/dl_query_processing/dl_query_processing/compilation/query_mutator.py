@@ -442,14 +442,7 @@ class ExtendedAggregationQueryMutator(QueryMutator):
             if mutator.match_query(compiled_query):
                 compiled_query = mutator.mutate_query(compiled_query)
 
-        if has_extaggs and not self._allow_arbitrary_toplevel_lod_dimensions:
-            dim_set_from_group_by = NodeSet(global_dimensions)
-            dim_set_from_top_lods = get_toplevel_dimension_set_for_query(compiled_query)
-            if (dim_set_from_group_by | dim_set_from_top_lods) != dim_set_from_group_by:
-                # LODs contain some dimensions that are not in `group_by`
-                raise formula_exc.LodInvalidTopLevelDimensionsError(
-                    "Invalid top-level LOD dimension found in expression " + str(dim_set_from_group_by) + str(dim_set_from_top_lods)
-                )
+
 
         if has_extaggs and not self._new_subquery_mode:
             # The real group_by's of each sub-query will be managed by forker
