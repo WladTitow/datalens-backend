@@ -18,18 +18,16 @@ def test_lod_aggregation_to_query_fork_mutation():
         ),
     )
     formula_obj = apply_mutations(formula_obj, mutations=mutations)
-    assert formula_obj == n.formula(
-        n.formula(
+    formula_test = n.formula(
             n.func.SUM(
                 args=[
-                    n.formula(
                         n.func.AVG(
                             args=[],
                             lod=n.fixed(n.field("f1"), n.field("f2")),
                         ),
-                    ),
+                    
                 ],
                 lod=n.fixed(n.field("f1")),
             ),
-        ),
-    )
+        )
+    assert formula_obj == formula_test, '{0} = {1}'.format(formula_obj, formula_test)

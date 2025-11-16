@@ -34,32 +34,8 @@ class ExtAggregationToQueryForkMutation(DimensionResolvingMutationBase):
             dimensions = list(old.lod.children)
         else:
             # Get global dimensions based on context
-            global_dimensions, _, _ = self._generate_dimensions(node=old, parent_stack=parent_stack)
+            dimensions, _, _ = self._generate_dimensions(node=old, parent_stack=parent_stack)
             
-            # Combine with existing LOD dimensions if applicable
-            if isinstance(old.lod, nodes.IncludeLodSpecifier):
-                # For INCLUDE, combine global dimensions with specified dimensions
-                # Handle both regular INCLUDE and default INCLUDE (no arguments)
-                if hasattr(old.lod, 'children') and old.lod.children:
-                    # Combine global and include dimensions, removing duplicates while preserving order
-                    include_dims = list(old.lod.children)
-                    dimensions = list(global_dimensions)
-                    for dim in include_dims:
-                        if dim not in dimensions:
-                            dimensions.append(dim)
-                else:
-                    # INCLUDE() with no arguments - just use global dimensions
-                    dimensions = list(global_dimensions)
-            elif isinstance(old.lod, nodes.FixedLodSpecifier):
-                # For FIXED, use only the specified dimensions
-                dimensions = list(old.lod.children)
-            elif isinstance(old.lod, nodes.ExcludeLodSpecifier):
-                # For EXCLUDE, use global dimensions minus excluded ones
-                exclude_dims = set(old.lod.children)
-                dimensions = [dim for dim in global_dimensions if dim not in exclude_dims]
-            else:
-                # For default case (inherited, default aggregation, etc.), use global dimensions
-                dimensions = list(global_dimensions)
         lod = nodes.FixedLodSpecifier.make(dim_list=dimensions)
 
         condition_list: list[fork_nodes.JoinConditionBase] = []
@@ -87,7 +63,7 @@ class ExtAggregationToQueryForkMutation(DimensionResolvingMutationBase):
 
         # Return a formula containing the updated function instead of a QueryFork
         # to match the expected test structure
-        return n.formula(old_updated)
+        return old_updated
 
 
 @attr.s
