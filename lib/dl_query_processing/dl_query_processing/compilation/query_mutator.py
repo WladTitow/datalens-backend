@@ -448,7 +448,7 @@ class ExtendedAggregationQueryMutator(QueryMutator):
             if (dim_set_from_group_by | dim_set_from_top_lods) != dim_set_from_group_by:
                 # LODs contain some dimensions that are not in `group_by`
                 raise formula_exc.LodInvalidTopLevelDimensionsError(
-                    "Invalid top-level LOD dimension found in expression " + str(compiled_query)
+                    "Invalid top-level LOD dimension found in expression " + str(dim_set_from_group_by) + str(dim_set_from_top_lods)
                 )
 
         if has_extaggs and not self._new_subquery_mode:
