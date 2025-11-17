@@ -62,7 +62,7 @@ class ExtAggregationToQueryForkMutation(DimensionResolvingMutationBase):
         )
 
         return fork_nodes.QueryFork.make(
-            join_type=fork_nodes.JoinType.left,
+            join_type=fork_nodes.JoinType.right,
             result_expr=old_updated,
             joining=joining,
             lod=lod,
