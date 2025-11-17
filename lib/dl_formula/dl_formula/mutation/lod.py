@@ -59,8 +59,10 @@ class ExtAggregationToQueryForkMutation(DimensionResolvingMutationBase):
             meta=old.meta,
         )
 
-        return fork_nodes.SubQueryFork.make(
+        return fork_nodes.QueryFork.make(
+            join_type=fork_nodes.JoinType.left,
             result_expr=old_updated,
+            joining=joining,
             lod=lod,
             before_filter_by=old.before_filter_by,
             meta=old.meta,
