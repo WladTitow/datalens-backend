@@ -59,6 +59,7 @@ class ExtAggregationToQueryForkMutation(DimensionResolvingMutationBase):
             before_filter_by=old.before_filter_by,
             lod=lod,
             meta=old.meta,
+            condition_list=condition_list,
         )
 
         return fork_nodes.QueryFork.make(
