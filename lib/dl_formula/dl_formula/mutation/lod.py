@@ -36,7 +36,9 @@ class ExtAggregationToQueryForkMutation(DimensionResolvingMutationBase):
             dimensions, _, _ = self._generate_dimensions(node=old, parent_stack=parent_stack)
         lod = nodes.FixedLodSpecifier.make(dim_list=dimensions)
 
-        condition_list: list[fork_nodes.JoinConditionBase] = []
+        condition_list: list[fork_nodes.JoinConditionBase] = [
+            fork_nodes.BinaryJoinCondition.make(expr=nodes.LiteralBoolean.make(True), fork_expr=nodes.LiteralBoolean.make(False))
+        ]
         for dimension_expr in dimensions:
             if is_aggregate_expression(dimension_expr, env=self._inspect_env):
                 return aux_nodes.ErrorNode.make(
