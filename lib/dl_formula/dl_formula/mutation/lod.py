@@ -63,7 +63,7 @@ class ExtAggregationToQueryForkMutation(DimensionResolvingMutationBase):
 
         # Return a formula containing the updated function instead of a QueryFork
         # to match the expected test structure
-        return old_updated
+        return n.formula(old_updated)
 
 
 @attr.s
