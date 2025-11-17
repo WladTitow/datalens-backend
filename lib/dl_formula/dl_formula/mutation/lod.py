@@ -33,9 +33,7 @@ class ExtAggregationToQueryForkMutation(DimensionResolvingMutationBase):
             # there are errors in current LODs, propagate them
             dimensions = list(old.lod.children)
         else:
-            # Get global dimensions based on context
             dimensions, _, _ = self._generate_dimensions(node=old, parent_stack=parent_stack)
-            
         lod = nodes.FixedLodSpecifier.make(dim_list=dimensions)
 
         condition_list: list[fork_nodes.JoinConditionBase] = []
@@ -61,9 +59,12 @@ class ExtAggregationToQueryForkMutation(DimensionResolvingMutationBase):
             meta=old.meta,
         )
 
-        # Return a formula containing the updated function instead of a QueryFork
-        # to match the expected test structure
-        return n.formula(old_updated)
+        return fork_nodes.SubQueryFork.make(
+            result_expr=old_updated,
+            lod=lod,
+            before_filter_by=old.before_filter_by,
+            meta=old.meta,
+        )
 
 
 @attr.s

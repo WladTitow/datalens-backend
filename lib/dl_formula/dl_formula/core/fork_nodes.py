@@ -208,3 +208,50 @@ class QueryFork(nodes.FormulaItem):
     @property
     def join_type(self) -> JoinType:
         return cast(JoinType, self.internal_value[0])
+
+
+class SubQueryFork(nodes.FormulaItem):
+    """
+    Represents a point where the query should be forked in two:
+    the main subquery and the forked subquery.
+    The ``joining`` child node describes how the two subqueries should be joined
+    """
+
+    __slots__ = ()
+
+    show_names = nodes.FormulaItem.show_names + ("result_expr", "lod", "bfb_filter_mutations")
+
+    result_expr: nodes.Child[nodes.FormulaItem] = nodes.Child(0)
+    lod: nodes.Child[nodes.LodSpecifier] = nodes.Child(1)
+    bfb_filter_mutations: nodes.Child[BfbFilterMutationCollectionSpec] = nodes.Child(2)
+
+    @classmethod
+    def make(
+        cls,
+        result_expr: nodes.FormulaItem,
+        before_filter_by: Optional[nodes.BeforeFilterBy] = None,
+        lod: Optional[nodes.LodSpecifier] = None,
+        bfb_filter_mutations: Optional[BfbFilterMutationCollectionSpec] = None,
+        meta: Optional[nodes.NodeMeta] = None,
+    ) -> QueryFork:
+        if before_filter_by is None:
+            before_filter_by = nodes.BeforeFilterBy.make()
+        if lod is None:
+            lod = nodes.InheritedLodSpecifier()
+        if bfb_filter_mutations is None:
+            bfb_filter_mutations = BfbFilterMutationCollectionSpec.make()
+
+        children = (result_expr, before_filter_by, lod, bfb_filter_mutations)
+        return cls(*children, internal_value=(), meta=meta)
+
+    @classmethod
+    def validate_children(cls, children: Sequence[nodes.FormulaItem]) -> None:
+        assert len(children) == 4
+
+    @classmethod
+    def validate_internal_value(cls, internal_value: tuple[Optional[Hashable], ...]) -> None:
+        assert 1 == 1
+
+    @property
+    def join_type(self) -> JoinType:
+        return 1 == 1
