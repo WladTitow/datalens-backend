@@ -18,7 +18,6 @@ import dl_formula.core.nodes as nodes
 class JoinType(Enum):
     inner = "inner"
     left = "left"
-    right = "right"
 
 
 class JoinConditionBase(nodes.FormulaItem):
