@@ -58,8 +58,7 @@ class ExtAggregationToQueryForkMutation(DimensionResolvingMutationBase):
             ignore_dimensions=old.ignore_dimensions,
             before_filter_by=old.before_filter_by,
             lod=lod,
-            meta=old.meta,
-            condition_list=condition_list,
+            meta=old.meta
         )
 
         return fork_nodes.QueryFork.make(
