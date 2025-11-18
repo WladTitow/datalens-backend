@@ -286,6 +286,20 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
         left_subquery_mask: QuerySplitMask,
         right_subquery_mask: QuerySplitMask,
     ) -> Optional[CompiledJoinOnFormulaInfo]:
+        # For right joins, we need to swap left and right subquery masks
+        # to ensure keys are taken from the right source
+        join_type = right_subquery_mask.join_type
+        assert join_type is not None
+        
+        if join_type == JoinType.right:
+            # Swap left and right for right joins
+            actual_left_mask = right_subquery_mask
+            actual_right_mask = left_subquery_mask
+        else:
+            # For left and inner joins, keep the original order
+            actual_left_mask = left_subquery_mask
+            actual_right_mask = right_subquery_mask
+
         def and_part(condition: Optional[formula_nodes.Binary], part: formula_nodes.Binary) -> formula_nodes.Binary:
             if condition is None:
                 return part
@@ -294,15 +308,15 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
         join_expr: Optional[formula_nodes.Binary] = None
 
         aliases_from_right_to_left: dict[str, str] = {}
-        left_map = {add_formula.expr.extract: add_formula.alias for add_formula in left_subquery_mask.add_formulas}
-        right_map = {add_formula.expr.extract: add_formula.alias for add_formula in right_subquery_mask.add_formulas}
+        left_map = {add_formula.expr.extract: add_formula.alias for add_formula in actual_left_mask.add_formulas}
+        right_map = {add_formula.expr.extract: add_formula.alias for add_formula in actual_right_mask.add_formulas}
         for node_extract, right_alias in right_map.items():
             if node_extract in left_map:
                 aliases_from_right_to_left[right_alias] = left_map[node_extract]
 
-        if isinstance(right_subquery_mask.joining_node, formula_fork_nodes.QueryForkJoiningWithList):
+        if isinstance(actual_right_mask.joining_node, formula_fork_nodes.QueryForkJoiningWithList):
             # Joining node explicitly lists joining conditions.
-            for condition in right_subquery_mask.joining_node.condition_list:
+            for condition in actual_right_mask.joining_node.condition_list:
                 right_expr: formula_nodes.FormulaItem
                 left_expr: formula_nodes.FormulaItem
                 if isinstance(condition, formula_fork_nodes.SelfEqualityJoinCondition):
@@ -322,21 +336,26 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
                 join_expr = and_part(condition=join_expr, part=part)
 
         else:
-            raise TypeError(f"Joining node type {type(right_subquery_mask.joining_node).__name__} is not supported")
+            raise TypeError(f"Joining node type {type(actual_right_mask.joining_node).__name__} is not supported")
 
         if join_expr is None:
             return None
 
-        join_type = right_subquery_mask.join_type
-        assert join_type is not None
+        # For right joins, we also need to swap the left_id and right_id in the result
+        if join_type == JoinType.right:
+            left_id = actual_left_mask.subquery_id
+            right_id = actual_right_mask.subquery_id
+        else:
+            left_id = actual_left_mask.subquery_id
+            right_id = actual_right_mask.subquery_id
 
         return CompiledJoinOnFormulaInfo(
             alias=None,  # Will not be used
             formula_obj=formula_nodes.Formula.make(expr=join_expr),
-            avatar_ids={left_subquery_mask.subquery_id, right_subquery_mask.subquery_id},
+            avatar_ids={actual_left_mask.subquery_id, actual_right_mask.subquery_id},
             original_field_id=None,
-            left_id=left_subquery_mask.subquery_id,
-            right_id=right_subquery_mask.subquery_id,
+            left_id=left_id,
+            right_id=right_id,
             join_type=join_type,
         )
 
