@@ -54,7 +54,7 @@ class ExtAggregationToQueryForkMutation(DimensionResolvingMutationBase):
         # Replace lod in the original function
         old_updated = nodes.FuncCall.make(
             name=old.name,
-            args=old.args + tuple(condition_list),
+            args=old.args,
             ignore_dimensions=old.ignore_dimensions,
             before_filter_by=old.before_filter_by,
             lod=lod,
@@ -62,9 +62,9 @@ class ExtAggregationToQueryForkMutation(DimensionResolvingMutationBase):
         )
 
         return fork_nodes.QueryFork.make(
-            join_type=fork_nodes.JoinType.left,
-            result_expr=joining,
-            joining=old_updated,
+            join_type=fork_nodes.JoinType.right,
+            result_expr=old_updated,
+            joining=joining,
             lod=lod,
             before_filter_by=old.before_filter_by,
             meta=old.meta,

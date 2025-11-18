@@ -32,6 +32,7 @@ from dl_query_processing.utils.name_gen import PrefixedIdGen
 _JOIN_TYPE_MAP = {
     formula_fork_nodes.JoinType.inner: JoinType.inner,
     formula_fork_nodes.JoinType.left: JoinType.left,
+    formula_fork_nodes.JoinType.right: JoinType.right,
 }
 
 

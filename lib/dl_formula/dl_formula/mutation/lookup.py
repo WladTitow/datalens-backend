@@ -289,7 +289,7 @@ class LookupFunctionToQueryForkMutation(DimensionResolvingMutationBase):
         )
 
         new_node = fork_nodes.QueryFork.make(
-            join_type=fork_nodes.JoinType.left,
+            join_type=fork_nodes.JoinType.right,
             result_expr=result_expr,
             joining=joining,
             before_filter_by=old.before_filter_by,
