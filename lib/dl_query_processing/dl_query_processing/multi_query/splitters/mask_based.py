@@ -339,8 +339,8 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
                         left_expr = condition.expr
                         right_expr = condition.expr
                     elif isinstance(condition, formula_fork_nodes.BinaryJoinCondition):
-                        left_expr = condition.fork_expr
-                        right_expr = condition.expr
+                        left_expr = condition.expr
+                        right_expr = condition.fork_expr
                     else:
                         raise TypeError(f"Type {type(condition).__name__} is not supported")
                     
