@@ -333,17 +333,9 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
 
         join_type = right_subquery_mask.join_type
         assert join_type is not None
-
+        raise TypeError(join_type + f" " + JoinType.right)
         if join_type == JoinType.right:
-            return CompiledJoinOnFormulaInfo(
-                alias=None,  # Will not be used
-                formula_obj=formula_nodes.Formula.make(expr=join_expr),
-                avatar_ids={right_subquery_mask.subquery_id, right_subquery_mask.subquery_id},
-                original_field_id=None,
-                left_id=right_subquery_mask.subquery_id,
-                right_id=right_subquery_mask.subquery_id,
-                join_type=join_type,
-            )
+            raise TypeError(f"test")
         else:
             return CompiledJoinOnFormulaInfo(
                 alias=None,  # Will not be used
