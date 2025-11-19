@@ -360,9 +360,9 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
         return CompiledJoinOnFormulaInfo(
             alias=None,  # Will not be used
             formula_obj=formula_nodes.Formula.make(expr=join_expr),
-            avatar_ids={left_subquery_mask.subquery_id, right_subquery_mask.subquery_id},
+            avatar_ids={right_subquery_mask.subquery_id, right_subquery_mask.subquery_id},
             original_field_id=None,
-            left_id=left_subquery_mask.subquery_id,
+            left_id=right_subquery_mask.subquery_id,
             right_id=right_subquery_mask.subquery_id,
             join_type=join_type,
         )
