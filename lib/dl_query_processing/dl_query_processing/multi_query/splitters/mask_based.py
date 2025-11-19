@@ -333,7 +333,7 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
 
         join_type = right_subquery_mask.join_type
         assert join_type is not None
-        raise TypeError(join_type + f" " + JoinType.right)
+        raise TypeError(f"test111 {join_type} == {JoinType.right}")
         if join_type == JoinType.right:
             raise TypeError(f"test")
         else:
