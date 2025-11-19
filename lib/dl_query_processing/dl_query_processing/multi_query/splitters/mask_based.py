@@ -303,6 +303,11 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
             if node_extract in left_map:
                 aliases_from_right_to_left[right_alias] = left_map[node_extract]
 
+        aliases_from_left_to_right: dict[str, str] = {}
+        for node_extract, left_alias in left_map.items():
+            if node_extract in right_map:
+                aliases_from_left_to_right[left_alias] = right_map[node_extract]
+
         if isinstance(right_subquery_mask.joining_node, formula_fork_nodes.QueryForkJoiningWithList):
             # Joining node explicitly lists joining conditions.
             for condition in right_subquery_mask.joining_node.condition_list:
@@ -322,6 +327,8 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
                 # and not the right one, whose field names are used in the expression
                 if join_type != JoinType.right:
                     left_expr = remap_formula_obj_fields(node=left_expr, field_name_map=aliases_from_right_to_left)
+                else:
+                    right_expr = remap_formula_obj_fields(node=right_expr, field_name_map=aliases_from_left_to_right)
                 part = formula_nodes.Binary.make(name="_dneq", left=left_expr, right=right_expr)
                 join_expr = and_part(condition=join_expr, part=part)
 
@@ -333,19 +340,16 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
 
         join_type = right_subquery_mask.join_type
         assert join_type is not None
-        raise TypeError(f"test111 {join_type} == {JoinType.right}")
-        if join_type == JoinType.right:
-            raise TypeError(f"test")
-        else:
-            return CompiledJoinOnFormulaInfo(
-                alias=None,  # Will not be used
-                formula_obj=formula_nodes.Formula.make(expr=join_expr),
-                avatar_ids={left_subquery_mask.subquery_id, right_subquery_mask.subquery_id},
-                original_field_id=None,
-                left_id=left_subquery_mask.subquery_id,
-                right_id=right_subquery_mask.subquery_id,
-                join_type=join_type,
-            )
+
+        return CompiledJoinOnFormulaInfo(
+            alias=None,  # Will not be used
+            formula_obj=formula_nodes.Formula.make(expr=join_expr),
+            avatar_ids={left_subquery_mask.subquery_id, right_subquery_mask.subquery_id},
+            original_field_id=None,
+            left_id=left_subquery_mask.subquery_id,
+            right_id=right_subquery_mask.subquery_id,
+            join_type=join_type,
+        )
 
     def get_used_from_ids(
         self,
