@@ -344,7 +344,7 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
                     else:
                         raise TypeError(f"Type {type(condition).__name__} is not supported")
                     
-                    # right_expr = remap_formula_obj_fields(node=right_expr, field_name_map=aliases_from_left_to_right)
+                    right_expr = remap_formula_obj_fields(node=right_expr, field_name_map=aliases_from_left_to_right)
                     part = formula_nodes.Binary.make(name="_dneq", left=left_expr, right=right_expr)
                     join_expr = and_part(condition=join_expr, part=part)
 

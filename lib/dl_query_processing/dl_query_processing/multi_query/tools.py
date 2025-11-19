@@ -64,6 +64,8 @@ def remap_formula_obj_fields(
     field_name_map: dict[str, str],
 ) -> _FORMULA_NODE_TV:
     def remap_field(_node: formula_nodes.Field, *args: Any, **kwargs: Any) -> formula_nodes.Field:
+        if _node.name not in field_name_map:
+            return _node
         return formula_nodes.Field.make(name=field_name_map[_node.name])
 
     # In case the node is itself a Field
