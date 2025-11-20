@@ -317,13 +317,16 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
                 else:
                     raise TypeError(f"Type {type(condition).__name__} is not supported")
 
-                # Remap columns in left_expr
-                # because it has to be evaluated against the left sub-query,
-                # and not the right one, whose field names are used in the expression
-                left_expr = remap_formula_obj_fields(node=left_expr, field_name_map=aliases_from_right_to_left)
-                
-                # right_expr = remap_formula_obj_fields(node=right_expr, field_name_map=aliases_from_left_to_right)
-                part = formula_nodes.Binary.make(name="_dneq", left=left_expr, right=right_expr)
+                # For SelfEqualityJoinCondition, we want to take the key from the right table
+                # For BinaryJoinCondition, right_expr is already from the right table
+                if isinstance(condition, formula_fork_nodes.SelfEqualityJoinCondition):
+                    # Use right_expr (from right table) for both sides to ensure key is taken from right table
+                    part = formula_nodes.Binary.make(name="_dneq", left=right_expr, right=right_expr)
+                else:
+                    # For BinaryJoinCondition, keep the original logic but ensure right side is from right table
+                    # Remap columns in left_expr to match the left sub-query
+                    left_expr = remap_formula_obj_fields(node=left_expr, field_name_map=aliases_from_right_to_left)
+                    part = formula_nodes.Binary.make(name="_dneq", left=left_expr, right=right_expr)
                 join_expr = and_part(condition=join_expr, part=part)
 
         else:
