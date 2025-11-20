@@ -302,6 +302,15 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
         aliases_from_right_to_left: dict[str, str] = {}
         left_map = {add_formula.expr.extract: add_formula.alias for add_formula in left_subquery_mask.add_formulas}
         right_map = {add_formula.expr.extract: add_formula.alias for add_formula in right_subquery_mask.add_formulas}
+
+        LOGGER.info(
+            f"test111 left_map: {left_map}"
+        )
+
+        LOGGER.info(
+            f"test111 right_map: {right_map}"
+        )
+
         for node_extract, right_alias in right_map.items():
             if node_extract in left_map:
                 aliases_from_right_to_left[right_alias] = left_map[node_extract]
@@ -543,6 +552,13 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
         new_group_by = generate_formula_list(query_part=QueryPart.group_by)
         new_order_by = generate_formula_list(query_part=QueryPart.order_by)
 
+        LOGGER.info(
+            f"test111 new_select: {new_select}"
+        )
+        LOGGER.info(
+            f"test111 new_group_by: {new_group_by}"
+        )
+
         # Remove filters that have already been applied a lower level.
         new_filters = generate_formula_list(
             query_part=QueryPart.filters, exclude_indices=base_subquery_mask.filter_indices
@@ -560,6 +576,14 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
                 if alias not in added_col_aliases:
                     columns.append(FromColumn(id=alias, name=alias))
                     added_col_aliases.add(alias)
+            
+            LOGGER.info(
+                f"test111 added_col_aliases: {added_col_aliases}"
+            )
+            LOGGER.info(
+                f"test111 columns: {columns}"
+            )
+
             froms.append(
                 SubqueryFromObject(
                     id=subquery_mask.subquery_id,
@@ -580,6 +604,9 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
                     join_on.append(join_on_expr)
 
         root_from_id = froms[0].id
+        LOGGER.info(
+            f"test111 froms: {froms}"
+        )
         joined_from = JoinedFromObject(root_from_id=root_from_id, froms=froms)
 
         # Update the original query object
@@ -815,7 +842,7 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
         )
 
         LOGGER.info(
-            f"test111 base_formula_split_masks: {base_formula_split_masks} expr_id_gen: {expr_id_gen} query_id_gen: {query_id_gen}"
+            f"test111 base_formula_split_masks: {','.join(base_formula_split_masks)} expr_id_gen: {expr_id_gen} query_id_gen: {query_id_gen}"
         )
 
         # Find the indices of filters that will be applied at the upper level
@@ -839,11 +866,7 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
         )
 
         LOGGER.info(
-            f"test111 split_masks: {split_masks}"
-        )
-
-        LOGGER.info(
-            f"test111 split_masks: {split_masks}"
+            f"test111 query: {query}"
         )
         
         if base_subquery_candidate_id is not None:
@@ -854,6 +877,10 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
             ]
             # Re-order them so that the base is the first one (False goes before True)
             split_masks = sorted(split_masks, key=lambda mask: (not mask.is_base, split_masks.index(mask)))
+
+            LOGGER.info(
+                f"test111 masks+++"
+            )
             return split_masks
 
         # Generate additional formulas from query's dimensions
@@ -969,9 +996,16 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
             # Retain the value from the earliest appearance of the key.
             result_queries.append(subquery)
 
+        LOGGER.info(
+            f"test111 query: {query}"
+        )
         # Crop original query (replace expressions specified by split masks with subquery fields)
         updated_original_query = self._crop_original_query(
             query=query, split_masks=split_masks, subqueries_compatible=subqueries_compatible
+        )
+
+        LOGGER.info(
+            f"test111 query: {updated_original_query}"
         )
         result_queries.append(updated_original_query)
 
@@ -992,6 +1026,9 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
         if not split_masks:
             return None
 
+        LOGGER.info(
+            f"test111 split_masks: {split_masks}"
+        )
         patch = self._get_query_patch_from_split_masks(
             query=query,
             split_masks=split_masks,
