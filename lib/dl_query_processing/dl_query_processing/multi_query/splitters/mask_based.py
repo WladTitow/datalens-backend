@@ -303,50 +303,28 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
             if node_extract in left_map:
                 aliases_from_right_to_left[right_alias] = left_map[node_extract]
 
-        aliases_from_left_to_right: dict[str, str] = {}
-        for node_extract, left_alias in left_map.items():
-            if node_extract in right_map:
-                aliases_from_left_to_right[left_alias] = right_map[node_extract]
-
         if isinstance(right_subquery_mask.joining_node, formula_fork_nodes.QueryForkJoiningWithList):
             # Joining node explicitly lists joining conditions.
-            if join_type != JoinType.right:
-                for condition in right_subquery_mask.joining_node.condition_list:
-                    right_expr: formula_nodes.FormulaItem
-                    left_expr: formula_nodes.FormulaItem
-                    if isinstance(condition, formula_fork_nodes.SelfEqualityJoinCondition):
-                        left_expr = condition.expr
-                        right_expr = condition.expr
-                    elif isinstance(condition, formula_fork_nodes.BinaryJoinCondition):
-                        left_expr = condition.expr
-                        right_expr = condition.fork_expr
-                    else:
-                        raise TypeError(f"Type {type(condition).__name__} is not supported")
+            for condition in right_subquery_mask.joining_node.condition_list:
+                right_expr: formula_nodes.FormulaItem
+                left_expr: formula_nodes.FormulaItem
+                if isinstance(condition, formula_fork_nodes.SelfEqualityJoinCondition):
+                    left_expr = condition.expr
+                    right_expr = condition.expr
+                elif isinstance(condition, formula_fork_nodes.BinaryJoinCondition):
+                    left_expr = condition.expr
+                    right_expr = condition.fork_expr
+                else:
+                    raise TypeError(f"Type {type(condition).__name__} is not supported")
 
-                    # Remap columns in left_expr
-                    # because it has to be evaluated against the left sub-query,
-                    # and not the right one, whose field names are used in the expression
-                    left_expr = remap_formula_obj_fields(node=left_expr, field_name_map=aliases_from_right_to_left)
-                    
-                    # right_expr = remap_formula_obj_fields(node=right_expr, field_name_map=aliases_from_left_to_right)
-                    part = formula_nodes.Binary.make(name="_dneq", left=left_expr, right=right_expr)
-                    join_expr = and_part(condition=join_expr, part=part)
-            else:
-                for condition in right_subquery_mask.joining_node.condition_list:
-                    right_expr: formula_nodes.FormulaItem
-                    left_expr: formula_nodes.FormulaItem
-                    if isinstance(condition, formula_fork_nodes.SelfEqualityJoinCondition):
-                        left_expr = condition.expr
-                        right_expr = condition.expr
-                    elif isinstance(condition, formula_fork_nodes.BinaryJoinCondition):
-                        left_expr = condition.expr
-                        right_expr = condition.fork_expr
-                    else:
-                        raise TypeError(f"Type {type(condition).__name__} is not supported")
-                    
-                    right_expr = remap_formula_obj_fields(node=right_expr, field_name_map=aliases_from_left_to_right)
-                    part = formula_nodes.Binary.make(name="_dneq", left=left_expr, right=right_expr)
-                    join_expr = and_part(condition=join_expr, part=part)
+                # Remap columns in left_expr
+                # because it has to be evaluated against the left sub-query,
+                # and not the right one, whose field names are used in the expression
+                left_expr = remap_formula_obj_fields(node=left_expr, field_name_map=aliases_from_right_to_left)
+                
+                # right_expr = remap_formula_obj_fields(node=right_expr, field_name_map=aliases_from_left_to_right)
+                part = formula_nodes.Binary.make(name="_dneq", left=left_expr, right=right_expr)
+                join_expr = and_part(condition=join_expr, part=part)
 
         else:
             raise TypeError(f"Joining node type {type(right_subquery_mask.joining_node).__name__} is not supported")
@@ -360,9 +338,9 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
         return CompiledJoinOnFormulaInfo(
             alias=None,  # Will not be used
             formula_obj=formula_nodes.Formula.make(expr=join_expr),
-            avatar_ids={right_subquery_mask.subquery_id, right_subquery_mask.subquery_id},
+            avatar_ids={left_subquery_mask.subquery_id, right_subquery_mask.subquery_id},
             original_field_id=None,
-            left_id=right_subquery_mask.subquery_id,
+            left_id=left_subquery_mask.subquery_id,
             right_id=right_subquery_mask.subquery_id,
             join_type=join_type,
         )
