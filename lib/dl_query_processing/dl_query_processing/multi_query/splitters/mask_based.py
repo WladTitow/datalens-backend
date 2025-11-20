@@ -3,6 +3,7 @@ from __future__ import annotations
 import abc
 from enum import Enum
 import itertools
+import logging
 from typing import (
     Any,
     ClassVar,
@@ -40,6 +41,8 @@ from dl_query_processing.multi_query.tools import (
     remap_formula_obj_fields,
 )
 from dl_query_processing.utils.name_gen import PrefixedIdGen
+
+LOGGER = logging.getLogger(__name__)
 
 
 class SubqueryType(Enum):
@@ -811,6 +814,10 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
             query=query, split_masks=split_masks, expr_id_gen=expr_id_gen
         )
 
+        LOGGER.info(
+            f"test111 base_formula_split_masks: {base_formula_split_masks} expr_id_gen: {expr_id_gen} query_id_gen: {query_id_gen}"
+        )
+
         # Find the indices of filters that will be applied at the upper level
         split_filter_indices = {
             fla_mask.formula_list_idx
@@ -826,7 +833,19 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
             base_formula_split_masks=base_formula_split_masks,
             base_filter_indices=base_filter_indices,
         )
-        base_subquery_candidate_id = split_masks[0]
+
+        LOGGER.info(
+            f"test111 base_subquery_candidate_id: {base_subquery_candidate_id} expr_id_gen: {expr_id_gen} query_id_gen: {query_id_gen}"
+        )
+
+        LOGGER.info(
+            f"test111 split_masks: {split_masks}"
+        )
+
+        LOGGER.info(
+            f"test111 split_masks: {split_masks}"
+        )
+        
         if base_subquery_candidate_id is not None:
             # Patch the candidate with `is_base=True` and return the original mask list
             split_masks = [
