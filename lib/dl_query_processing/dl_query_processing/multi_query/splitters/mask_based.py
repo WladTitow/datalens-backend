@@ -321,7 +321,7 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
                 # For BinaryJoinCondition, right_expr is already from the right table
                 if join_type == JoinType.right:
                     # Use right_expr (from right table) for both sides to ensure key is taken from right table
-                    part = formula_nodes.Binary.make(name="_dneq", left=right_expr, right=right_expr)
+                    part = formula_nodes.Binary.make(name="_dneq", left=left_expr, right=right_expr)
                 else:
                     # For BinaryJoinCondition, keep the original logic but ensure right side is from right table
                     # Remap columns in left_expr to match the left sub-query
@@ -343,8 +343,8 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
             formula_obj=formula_nodes.Formula.make(expr=join_expr),
             avatar_ids={left_subquery_mask.subquery_id, right_subquery_mask.subquery_id},
             original_field_id=None,
-            left_id=right_subquery_mask.subquery_id,
-            right_id=left_subquery_mask.subquery_id,
+            left_id=left_subquery_mask.subquery_id,
+            right_id=right_subquery_mask.subquery_id,
             join_type=join_type,
         )
 
@@ -826,6 +826,7 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
             base_formula_split_masks=base_formula_split_masks,
             base_filter_indices=base_filter_indices,
         )
+        base_subquery_candidate_id = split_masks[0]
         if base_subquery_candidate_id is not None:
             # Patch the candidate with `is_base=True` and return the original mask list
             split_masks = [
