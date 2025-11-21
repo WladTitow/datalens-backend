@@ -329,16 +329,8 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
                 else:
                     raise TypeError(f"Type {type(condition).__name__} is not supported")
 
-                # For SelfEqualityJoinCondition, we want to take the key from the right table
-                # For BinaryJoinCondition, right_expr is already from the right table
-                if join_type == JoinType.right:
-                    # Use right_expr (from right table) for both sides to ensure key is taken from right table
-                    part = formula_nodes.Binary.make(name="_dneq", left=left_expr, right=right_expr)
-                else:
-                    # For BinaryJoinCondition, keep the original logic but ensure right side is from right table
-                    # Remap columns in left_expr to match the left sub-query
-                    left_expr = remap_formula_obj_fields(node=left_expr, field_name_map=aliases_from_right_to_left)
-                    part = formula_nodes.Binary.make(name="_dneq", left=left_expr, right=right_expr)
+                left_expr = remap_formula_obj_fields(node=left_expr, field_name_map=aliases_from_right_to_left)
+                part = formula_nodes.Binary.make(name="_dneq", left=left_expr, right=right_expr)
                 join_expr = and_part(condition=join_expr, part=part)
 
         else:
@@ -815,6 +807,9 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
             # and subquery with the most dimensions has the same
             # dimensions and filters as would the base sub-query.
             # So we can just use this "largest" subquery as the base.
+            LOGGER.info(
+                f"test111 max_query_has_all_base_dimensions {max_query_has_all_base_dimensions} "
+            )
             assert max_query_id is not None
             return max_query_id
 
@@ -825,6 +820,9 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
             # they are useless in a 0-dimensional query with no selects.
             # So don't create a new sub-query, use the existing sub-query
             # with the most dimensions as base
+            LOGGER.info(
+                f"test111 base_group_by_count {base_group_by_count} "
+            )
             assert max_query_id is not None
             return max_query_id
 
@@ -913,6 +911,11 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
             joining_node=None,
             is_base=True,
         )
+
+        LOGGER.info(
+            f"test111 itog base_mask subquery_id {base_mask.subquery_id}"
+        )
+        
         return [base_mask] + split_masks
 
     def _separate_base_and_other_masks(
@@ -1005,10 +1008,13 @@ class MultiQuerySplitter(MultiQuerySplitterBase):
         )
 
         LOGGER.info(
-            f"test111 query: {updated_original_query}"
+            f"test111 updated_original_query: {updated_original_query}"
         )
         result_queries.append(updated_original_query)
 
+        LOGGER.info(
+            f"test111 result_queries: {result_queries}"
+        )
         # Put it all into a patch object and return it
         patch = CompiledMultiQueryPatch(
             patch_multi_query=CompiledMultiQuery(queries=result_queries),
