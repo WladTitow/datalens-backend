@@ -40,6 +40,11 @@ class SplitterMultiQueryMutator(MultiQueryMutatorBase):
     def mutate_multi_query(self, multi_query: CompiledMultiQueryBase) -> CompiledMultiQueryBase:
         query_id_gen = PrefixedIdGen("q")
         expr_id_gen = PrefixedIdGen("e")
+
+        LOGGER.info(
+            f"test111 multi_query 1 {multi_query} "
+        )
+        
         for splitter in self._splitters:
             skip_queries: set[str] = set()
 
@@ -83,4 +88,7 @@ class SplitterMultiQueryMutator(MultiQueryMutatorBase):
                     f"for splitter {splitter.__class__.__name__}"
                 )
 
+        LOGGER.info(
+            f"test111 multi_query 2 {multi_query} "
+        )
         return multi_query
