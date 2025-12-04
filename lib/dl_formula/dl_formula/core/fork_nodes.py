@@ -192,7 +192,7 @@ class QueryFork(nodes.FormulaItem):
         if bfb_filter_mutations is None:
             bfb_filter_mutations = BfbFilterMutationCollectionSpec.make()
 
-        children = (joining, lod, before_filter_by, result_expr, bfb_filter_mutations)
+        children = (joining, result_expr, before_filter_by, lod, bfb_filter_mutations)
         internal_value = (join_type,)
         return cls(*children, internal_value=internal_value, meta=meta)
 

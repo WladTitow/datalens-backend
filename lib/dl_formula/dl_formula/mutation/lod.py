@@ -29,12 +29,13 @@ class ExtAggregationToQueryForkMutation(DimensionResolvingMutationBase):
         assert isinstance(old, nodes.FuncCall)
 
         dimensions: list[nodes.FormulaItem]
+        lod = nodes.FixedLodSpecifier.make(dim_list=dimensions)
         if old.lod.list_node_type(aux_nodes.ErrorNode):
             # there are errors in current LODs, propagate them
             dimensions = list(old.lod.children)
         else:
             dimensions, _, _ = self._generate_dimensions(node=old, parent_stack=parent_stack)
-        lod = nodes.FixedLodSpecifier.make(dim_list=dimensions)
+        
 
         condition_list: list[fork_nodes.JoinConditionBase] = []
         for dimension_expr in dimensions:
