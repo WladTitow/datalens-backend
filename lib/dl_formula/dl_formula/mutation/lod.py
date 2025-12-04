@@ -55,13 +55,13 @@ class ExtAggregationToQueryForkMutation(DimensionResolvingMutationBase):
             args=old.args,
             ignore_dimensions=old.ignore_dimensions,
             before_filter_by=old.before_filter_by,
-            #lod=lod,
+            lod=lod,
             meta=old.meta,
         )
 
         return fork_nodes.QueryFork.make(
             join_type=fork_nodes.JoinType.inner,
-            result_expr=old_updated,
+            result_expr=old,
             joining=joining,
             lod=lod,
             before_filter_by=old.before_filter_by,
