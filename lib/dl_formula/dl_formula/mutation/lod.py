@@ -34,20 +34,6 @@ class ExtAggregationToQueryForkMutation(DimensionResolvingMutationBase):
             dimensions = list(old.lod.children)
         else:
             dimensions, _, _ = self._generate_dimensions(node=old, parent_stack=parent_stack)
-        
-        # Check if the dimensions match the global dimensions
-        # If they do, we don't need to create a QueryFork
-        if len(dimensions) == len(self._global_dimensions):
-            # Check if all dimensions match
-            dimensions_match = True
-            for dim1, dim2 in zip(dimensions, self._global_dimensions):
-                if dim1.extract != dim2.extract:
-                    dimensions_match = False
-                    break
-            
-            if dimensions_match:
-                # No need to create a QueryFork, return the original node
-                return old
 
         lod = nodes.FixedLodSpecifier.make(dim_list=dimensions)
 
@@ -74,12 +60,8 @@ class ExtAggregationToQueryForkMutation(DimensionResolvingMutationBase):
             meta=old.meta,
         )
 
-        return fork_nodes.QueryFork.make(
-            join_type=fork_nodes.JoinType.inner,
+        return fork_nodes.SubQueryFork.make(
             result_expr=old_updated,
-            joining=joining,
-            lod=lod,
-            before_filter_by=old.before_filter_by,
             meta=old.meta,
         )
 

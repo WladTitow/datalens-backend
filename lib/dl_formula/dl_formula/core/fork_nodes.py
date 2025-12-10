@@ -208,3 +208,24 @@ class QueryFork(nodes.FormulaItem):
     @property
     def join_type(self) -> JoinType:
         return cast(JoinType, self.internal_value[0])
+
+
+class SubQueryFork(nodes.FormulaItem):
+
+    __slots__ = ()
+
+    show_names = nodes.FormulaItem.show_names + ("result_expr",)
+
+    result_expr: nodes.Child[nodes.FormulaItem] = nodes.Child(1)
+
+    @classmethod
+    def make(
+        cls,
+        result_expr: nodes.FormulaItem,
+    ) -> QueryFork:
+        children = (result_expr,)
+        return cls(*children)
+
+    @classmethod
+    def validate_children(cls, children: Sequence[nodes.FormulaItem]) -> None:
+        assert len(children) == 1
