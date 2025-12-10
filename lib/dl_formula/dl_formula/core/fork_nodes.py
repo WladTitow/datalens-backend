@@ -222,7 +222,7 @@ class SubQueryFork(nodes.FormulaItem):
     def make(
         cls,
         result_expr: nodes.FormulaItem,
-    ) -> QueryFork:
+    ) -> SubQueryFork:
         children = (result_expr,)
         return cls(*children)
 
