@@ -215,8 +215,8 @@ class SubQueryFork(nodes.FormulaItem):
     __slots__ = ()
 
     show_names = nodes.FormulaItem.show_names + ("result_expr",)
-
-    result_expr: nodes.Child[nodes.FormulaItem] = nodes.Child(1)
+ 
+    result_expr: nodes.Child[nodes.FormulaItem] = nodes.Child(0)
 
     @classmethod
     def make(
