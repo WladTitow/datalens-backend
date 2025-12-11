@@ -81,16 +81,25 @@ def is_default_lod_aggregation(node: nodes.FormulaItem) -> bool:
 
 
 def qfork_is_aggregation(node: fork_nodes.QueryFork) -> bool:
+    # SubQueryFork nodes don't have lod attribute, they are treated as having inherited LOD
+    if not hasattr(node, 'lod'):
+        return False
     return not isinstance(node.lod, nodes.InheritedLodSpecifier) and is_aggregate_function(  # Only lookups have these
         node.result_expr
     )
 
 
 def qfork_is_window(node: fork_nodes.QueryFork) -> bool:
+    # SubQueryFork nodes don't have lod attribute, they are treated as having inherited LOD
+    if not hasattr(node, 'lod'):
+        return False
     return not isinstance(node.lod, nodes.InheritedLodSpecifier) and is_window_function(  # Only lookups have these
         node.result_expr
     )
 
 
 def qfork_is_lookup(node: fork_nodes.QueryFork) -> bool:
+    # SubQueryFork nodes don't have lod attribute, they are treated as having inherited LOD
+    if not hasattr(node, 'lod'):
+        return True
     return isinstance(node.lod, nodes.InheritedLodSpecifier)  # Only lookups have these

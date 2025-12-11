@@ -97,7 +97,9 @@ class QueryForkQuerySplitter(MultiQuerySplitter):
             formula_idx=0,  # Fake values, but they don't matter
         )
         for _, child_qfork in child_query_forks:
-            child_lod_extracts.add(child_qfork.lod.extract_not_none)
+            # SubQueryFork nodes don't have lod attribute
+            if hasattr(child_qfork, 'lod'):
+                child_lod_extracts.add(child_qfork.lod.extract_not_none)
 
         return frozenset(child_lod_extracts)
 
@@ -303,8 +305,17 @@ class QueryForkQuerySplitter(MultiQuerySplitter):
 
         qforks_by_signature: OrderedDict[SubqueryForkSignature, QueryForkInfo] = OrderedDict()
         for formula_split_mask, qfork_node, normalized_bfb in fmask_qfork_bfb_list:
-            join_type = _JOIN_TYPE_MAP[qfork_node.join_type]
-            lod = qfork_node.lod
+            # SubQueryFork nodes don't have join_type or lod attributes
+            if hasattr(qfork_node, 'join_type'):
+                join_type = _JOIN_TYPE_MAP[qfork_node.join_type]
+            else:
+                join_type = JoinType.inner  # Default join type for SubQueryFork
+            
+            if hasattr(qfork_node, 'lod'):
+                lod = qfork_node.lod
+            else:
+                # SubQueryFork nodes are treated as having inherited LOD
+                lod = formula_nodes.InheritedLodSpecifier()
             dim_list: tuple[formula_nodes.FormulaItem, ...]
             if isinstance(lod, formula_nodes.FixedLodSpecifier):
                 dim_list = tuple(lod.dim_list)
@@ -374,13 +385,17 @@ class QueryForkQuerySplitter(MultiQuerySplitter):
                             )
 
                 add_formulas = tuple(dim_add_formulas + non_dim_add_formulas)
-                bfb_filter_mutations = tuple(
-                    SimpleReplacementFormulaMutation(
-                        original=mutation.original,
-                        replacement=mutation.replacement,
+                # SubQueryFork nodes don't have bfb_filter_mutations attribute
+                if hasattr(qfork_node, 'bfb_filter_mutations'):
+                    bfb_filter_mutations = tuple(
+                        SimpleReplacementFormulaMutation(
+                            original=mutation.original,
+                            replacement=mutation.replacement,
+                        )
+                        for mutation in qfork_node.bfb_filter_mutations.mutations
                     )
-                    for mutation in qfork_node.bfb_filter_mutations.mutations
-                )
+                else:
+                    bfb_filter_mutations = tuple()
 
                 qfork_info = QueryForkInfo(
                     subquery_type=subquery_type,
