@@ -325,8 +325,28 @@ class QueryForkQuerySplitter(MultiQuerySplitter):
             else:
                 raise TypeError(f"Unsupported LodSpecifier type: {type(lod).__name__}")
 
-            joining: formula_fork_nodes.QueryForkJoiningBase = qfork_node.joining
-            if len(dim_list) == 0:
+            # SubQueryFork nodes don't have joining attribute
+            if hasattr(qfork_node, 'joining'):
+                joining: formula_fork_nodes.QueryForkJoiningBase = qfork_node.joining
+            else:
+                # For SubQueryFork nodes, create a default joining with self-equality condition
+                # on the first dimension if available, or a dummy dimension
+                if dim_list:
+                    joining = formula_fork_nodes.QueryForkJoiningWithList.make(
+                        condition_list=[
+                            formula_fork_nodes.SelfEqualityJoinCondition.make(expr=dim_list[0]),
+                        ],
+                    )
+                else:
+                    # Add a dummy dimension.
+                    dummy_dim_node = formula_nodes.LiteralInteger.make(value=1)
+                    dim_list += (dummy_dim_node,)
+                    joining = formula_fork_nodes.QueryForkJoiningWithList.make(
+                        condition_list=[
+                            formula_fork_nodes.SelfEqualityJoinCondition.make(expr=dummy_dim_node),
+                        ],
+                    )
+            if len(dim_list) == 0 and not isinstance(joining, formula_fork_nodes.QueryForkJoiningWithList):
                 # Add a dummy dimension.
                 dummy_dim_node = formula_nodes.LiteralInteger.make(value=1)
                 dim_list += (dummy_dim_node,)
