@@ -288,7 +288,11 @@ class QueryForkQuerySplitter(MultiQuerySplitter):
         )
 
         def _normalize_bfb(qfork_node: formula_fork_nodes.QueryFork) -> frozenset[str]:
-            return frozenset(qfork_node.before_filter_by.field_names) & available_filter_ids
+            if hasattr(qfork_node, 'before_filter_by') and qfork_node.before_filter_by is not None:
+                return frozenset(qfork_node.before_filter_by.field_names) & available_filter_ids
+            else:
+                # SubQueryFork nodes don't have before_filter_by attribute
+                return frozenset()
 
         fmask_qfork_bfb_list: list[FMask_QFork_BFB] = []
         for formula_split_mask, qfork_node in fmask_qfork_list:
