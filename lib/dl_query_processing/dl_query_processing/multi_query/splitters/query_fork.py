@@ -74,6 +74,7 @@ class QueryForkInfo:
 # Some type aliases
 FMask_QFork = tuple[FormulaSplitMask, formula_fork_nodes.QueryFork]
 FMask_QFork_BFB = tuple[FormulaSplitMask, formula_fork_nodes.QueryFork, frozenset[str]]
+FMask_SQFork = tuple[FormulaSplitMask, formula_fork_nodes.SubQueryFork]
 
 
 @attr.s
@@ -116,6 +117,18 @@ class QueryForkQuerySplitter(MultiQuerySplitter):
                         formula_list_idx=formula_idx,
                         outer_node_idx=index_prefix,
                         inner_node_idx=index_prefix + (1,),  # QueryFork.result_expr = Child(1)
+                    ),
+                    node,
+                )
+            )
+        elif isinstance(node, formula_fork_nodes.SubQueryFork):
+            result.append(
+                (
+                    FormulaSplitMask(
+                        query_part=query_part,
+                        formula_list_idx=formula_idx,
+                        outer_node_idx=index_prefix,
+                        inner_node_idx=index_prefix + (0,),  # SubQueryFork.result_expr = Child(0)
                     ),
                     node,
                 )

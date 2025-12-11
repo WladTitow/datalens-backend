@@ -19,7 +19,6 @@ from dl_formula.core.datatype import (
 )
 from dl_formula.core.dialect import DialectCombo
 import dl_formula.core.exc as exc
-import dl_formula.core.fork_nodes as fork_nodes
 import dl_formula.core.nodes as nodes
 from dl_formula.definitions.common import desc
 from dl_formula.definitions.literals import literal
@@ -384,12 +383,6 @@ class SqlAlchemyTranslator:
         ctx.set_expression(sa.null())
         ctx.set_type(DataType.NULL)
         ctx.add_error(message=node.message, code=node.err_code)
-
-    @_translate_node.register(fork_nodes.SubQueryFork)
-    def _translate_node_subquery_fork(self, node: fork_nodes.SubQueryFork, ctx: TranslationCtx) -> None:
-        # For SubQueryFork, we just translate the result_expr
-        # The forking logic is handled at a higher level during query compilation
-        self.translate_node(node.result_expr, ctx=ctx, postprocess=False)
 
 
 def translate(
